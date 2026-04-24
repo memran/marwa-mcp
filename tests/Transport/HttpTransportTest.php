@@ -32,4 +32,14 @@ final class HttpTransportTest extends TestCase
 
         self::assertSame(405, $response['status']);
     }
+
+    public function testHttpReturnsJsonRpcParseError(): void
+    {
+        $transport = new HttpTransport(new JsonRpcHandler(ServerFactory::createDefault()));
+        $response = $transport->handle('{bad-json');
+        $body = json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame(200, $response['status']);
+        self::assertSame(-32700, $body['error']['code']);
+    }
 }

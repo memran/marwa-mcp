@@ -31,6 +31,12 @@ Claude Desktop or Cursor can then start the server over stdio.
 
 ## HTTP Usage
 
+Use the bundled example:
+
+```bash
+php -S 127.0.0.1:8080 -t examples/http/public
+```
+
 ```php
 <?php
 
@@ -40,7 +46,7 @@ use Memran\MarwaMcp\Server\JsonRpcHandler;
 use Memran\MarwaMcp\Server\ServerFactory;
 use Memran\MarwaMcp\Transport\HttpTransport;
 
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/../../../vendor/autoload.php';
 
 $server = ServerFactory::createDefault();
 $transport = new HttpTransport(new JsonRpcHandler($server));
@@ -50,7 +56,7 @@ $transport->emit();
 Example request:
 
 ```bash
-curl -X POST http://localhost/mcp \
+curl -X POST http://127.0.0.1:8080/mcp.php \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 ```
