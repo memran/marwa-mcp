@@ -10,4 +10,5 @@ All notable changes to `memran/marwa-mcp` will be documented in this file.
 - Added built-in `ping`, `server_info`, and `echo` tools.
 - Added built-in Marwa server info and tools resources.
 - Added built-in Marwa debug and module generator prompts.
+- Added reusable schema validation for tool arguments.
 - Added PHPUnit, PHPStan, PHPCS, and GitHub Actions CI configuration.

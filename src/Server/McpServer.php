@@ -8,6 +8,7 @@ use Memran\MarwaMcp\Prompt\PromptRegistry;
 use Memran\MarwaMcp\Resource\ResourceRegistry;
 use Memran\MarwaMcp\Security\AllowAllPermissionPolicy;
 use Memran\MarwaMcp\Security\PermissionPolicyInterface;
+use Memran\MarwaMcp\Security\SchemaValidator;
 use Memran\MarwaMcp\Tool\ToolRegistry;
 
 final class McpServer
@@ -17,6 +18,7 @@ final class McpServer
         private readonly ResourceRegistry $resources,
         private readonly PromptRegistry $prompts,
         private readonly PermissionPolicyInterface $permissionPolicy = new AllowAllPermissionPolicy(),
+        private readonly SchemaValidator $schemaValidator = new SchemaValidator(),
         private readonly string $name = 'marwa-mcp',
         private readonly string $version = '0.1.0'
     ) {
@@ -100,7 +102,7 @@ final class McpServer
 
         /** @var array<string, mixed> $arguments */
         $tool = $this->tools->get($name);
-        $this->tools->validateArguments($tool, $arguments);
+        $this->schemaValidator->validateObject($tool->schema(), $arguments, 'argument');
 
         return $tool->call($arguments)->toArray();
     }

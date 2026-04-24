@@ -38,12 +38,12 @@ final class ServerFactory
         $prompts->register(new MarwaModuleGeneratorPrompt());
 
         return new McpServer(
-            $tools,
-            $resources,
-            $prompts,
-            $permissionPolicy ?? new AllowAllPermissionPolicy(),
-            $name,
-            $version
+            tools: $tools,
+            resources: $resources,
+            prompts: $prompts,
+            permissionPolicy: $permissionPolicy ?? new AllowAllPermissionPolicy(),
+            name: $name,
+            version: $version
         );
     }
 }
