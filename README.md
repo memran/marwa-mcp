@@ -5,7 +5,7 @@
 [![PHP Version](https://img.shields.io/packagist/php-v/memran/marwa-mcp.svg)](https://packagist.org/packages/memran/marwa-mcp)
 [![License](https://img.shields.io/github/license/memran/marwa-mcp.svg)](LICENSE)
 
-`memran/marwa-mcp` is a small PHP 8.3 library for building Model Context Protocol servers in Marwa Framework or standalone PHP apps.
+`memran/marwa-mcp` is a small PHP 8.2 library for building Model Context Protocol servers in Marwa Framework or standalone PHP apps.
 
 It supports JSON-RPC 2.0, stdio, HTTP POST, tool/resource/prompt registries, permission checks, and PSR-3 logging.
 
