@@ -14,12 +14,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Memran\\MarwaMcp\\": "src/"
+            "Marwa\\MCP\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Memran\\MarwaMcp\\Tests\\": "tests/"
+            "Marwa\\MCP\\Tests\\": "tests/"
         }
     },
     "bin": [

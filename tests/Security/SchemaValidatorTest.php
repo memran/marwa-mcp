@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Memran\MarwaMcp\Tests\Security;
+namespace Marwa\MCP\Tests\Security;
 
-use Memran\MarwaMcp\Security\SchemaValidator;
-use Memran\MarwaMcp\Server\McpError;
+use Marwa\MCP\SchemaValidator;
+use Marwa\MCP\McpError;
 use PHPUnit\Framework\TestCase;
 
 final class SchemaValidatorTest extends TestCase

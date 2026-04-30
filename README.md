@@ -47,9 +47,9 @@ php -S 127.0.0.1:8080 -t examples/http/public
 
 declare(strict_types=1);
 
-use Memran\MarwaMcp\Server\JsonRpcHandler;
-use Memran\MarwaMcp\Server\ServerFactory;
-use Memran\MarwaMcp\Transport\HttpTransport;
+use Marwa\MCP\JsonRpcHandler;
+use Marwa\MCP\ServerFactory;
+use Marwa\MCP\HttpTransport;
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
@@ -73,9 +73,9 @@ curl -X POST http://127.0.0.1:8080/mcp.php \
 
 declare(strict_types=1);
 
-use Memran\MarwaMcp\Server\JsonRpcHandler;
-use Memran\MarwaMcp\Server\ServerFactory;
-use Memran\MarwaMcp\Transport\HttpTransport;
+use Marwa\MCP\JsonRpcHandler;
+use Marwa\MCP\ServerFactory;
+use Marwa\MCP\HttpTransport;
 
 final class McpController
 {
@@ -95,8 +95,8 @@ final class McpController
 
 declare(strict_types=1);
 
-use Memran\MarwaMcp\Tool\ToolInterface;
-use Memran\MarwaMcp\Tool\ToolResult;
+use Marwa\MCP\ToolInterface;
+use Marwa\MCP\ToolResult;
 
 final class GreetingTool implements ToolInterface
 {
@@ -141,8 +141,8 @@ $server->tools()->register(new GreetingTool());
 
 declare(strict_types=1);
 
-use Memran\MarwaMcp\Resource\ResourceInterface;
-use Memran\MarwaMcp\Resource\ResourceResult;
+use Marwa\MCP\ResourceInterface;
+use Marwa\MCP\ResourceResult;
 
 final class StatusResource implements ResourceInterface
 {
@@ -175,8 +175,8 @@ final class StatusResource implements ResourceInterface
 
 declare(strict_types=1);
 
-use Memran\MarwaMcp\Prompt\PromptInterface;
-use Memran\MarwaMcp\Prompt\PromptResult;
+use Marwa\MCP\PromptInterface;
+use Marwa\MCP\PromptResult;
 
 final class ReviewPrompt implements PromptInterface
 {
@@ -207,7 +207,7 @@ final class ReviewPrompt implements PromptInterface
 The optional provider is intentionally minimal and avoids framework lock-in:
 
 ```php
-use Memran\MarwaMcp\Marwa\McpServiceProvider;
+use Marwa\MCP\McpServiceProvider;
 
 (new McpServiceProvider())->register($container);
 ```
@@ -265,7 +265,7 @@ Do not expose unsafe tools by default. This package intentionally ships without 
 Use a custom `PermissionPolicyInterface` in production:
 
 ```php
-use Memran\MarwaMcp\Security\PermissionPolicyInterface;
+use Marwa\MCP\PermissionPolicyInterface;
 
 final class ProductionPolicy implements PermissionPolicyInterface
 {

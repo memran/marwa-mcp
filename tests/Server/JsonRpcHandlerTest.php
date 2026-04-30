@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Memran\MarwaMcp\Tests\Server;
+namespace Marwa\MCP\Tests\Server;
 
-use Memran\MarwaMcp\Security\PermissionPolicyInterface;
-use Memran\MarwaMcp\Server\JsonRpcHandler;
-use Memran\MarwaMcp\Server\ServerFactory;
+use Marwa\MCP\PermissionPolicyInterface;
+use Marwa\MCP\JsonRpcHandler;
+use Marwa\MCP\ServerFactory;
 use PHPUnit\Framework\TestCase;
 
 final class JsonRpcHandlerTest extends TestCase

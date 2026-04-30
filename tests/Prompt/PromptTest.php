@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Memran\MarwaMcp\Tests\Prompt;
+namespace Marwa\MCP\Tests\Prompt;
 
-use Memran\MarwaMcp\Server\JsonRpcHandler;
-use Memran\MarwaMcp\Server\ServerFactory;
+use Marwa\MCP\JsonRpcHandler;
+use Marwa\MCP\ServerFactory;
 use PHPUnit\Framework\TestCase;
 
 final class PromptTest extends TestCase

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Memran\MarwaMcp\Security\PermissionPolicyInterface;
-use Memran\MarwaMcp\Server\JsonRpcHandler;
-use Memran\MarwaMcp\Server\ServerFactory;
-use Memran\MarwaMcp\Transport\StdioTransport;
+use Marwa\MCP\PermissionPolicyInterface;
+use Marwa\MCP\JsonRpcHandler;
+use Marwa\MCP\ServerFactory;
+use Marwa\MCP\StdioTransport;
 
 require __DIR__ . '/../vendor/autoload.php';
 

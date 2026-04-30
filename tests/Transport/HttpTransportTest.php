@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Memran\MarwaMcp\Tests\Transport;
+namespace Marwa\MCP\Tests\Transport;
 
-use Memran\MarwaMcp\Server\JsonRpcHandler;
-use Memran\MarwaMcp\Server\ServerFactory;
-use Memran\MarwaMcp\Transport\HttpTransport;
+use Marwa\MCP\JsonRpcHandler;
+use Marwa\MCP\ServerFactory;
+use Marwa\MCP\HttpTransport;
 use PHPUnit\Framework\TestCase;
 
 final class HttpTransportTest extends TestCase
