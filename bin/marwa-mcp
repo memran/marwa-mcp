@@ -3,12 +3,13 @@
 
 declare(strict_types=1);
 
+use Marwa\MCP\AllowAllPermissionPolicy;
 use Marwa\MCP\JsonRpcHandler;
 use Marwa\MCP\ServerFactory;
 use Marwa\MCP\StdioTransport;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$server = ServerFactory::createDefault();
+$server = ServerFactory::createDefault(new AllowAllPermissionPolicy());
 $transport = new StdioTransport(new JsonRpcHandler($server));
 $transport->listen();

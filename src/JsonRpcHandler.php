@@ -15,9 +15,12 @@ use Throwable;
 
 final class JsonRpcHandler
 {
+    private const DEFAULT_MAX_BATCH_SIZE = 20;
+
     public function __construct(
         private readonly McpServer $server,
-        private readonly LoggerInterface $logger = new NullLogger()
+        private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly int $maxBatchSize = self::DEFAULT_MAX_BATCH_SIZE,
     ) {
     }
 
@@ -48,6 +51,13 @@ final class JsonRpcHandler
     {
         if ($payloads === []) {
             return $this->encode(JsonRpcResponse::error(McpError::INVALID_REQUEST, 'Invalid request.')->toArray());
+        }
+
+        if (count($payloads) > $this->maxBatchSize) {
+            return $this->encode(JsonRpcResponse::error(
+                McpError::INVALID_PARAMS,
+                'Batch size exceeds maximum allowed.'
+            )->toArray());
         }
 
         $responses = [];

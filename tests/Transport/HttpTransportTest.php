@@ -153,6 +153,54 @@ final class HttpTransportTest extends TestCase
         self::assertSame(429, $response2['status']);
     }
 
+    public function testRateLimiterIgnoresSpoofedXForwardedFor(): void
+    {
+        $transport = $this->createTransport([
+            'rateLimiter' => new SlidingWindowRateLimiter(maxRequests: 1, windowSeconds: 60),
+        ]);
+
+        $body = json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'initialize',
+        ], JSON_THROW_ON_ERROR);
+
+        $response1 = $transport->handle($body, 'POST', ['remote-addr' => '10.0.0.1']);
+        self::assertSame(200, $response1['status']);
+
+        $response2 = $transport->handle($body, 'POST', [
+            'remote-addr' => '10.0.0.1',
+            'x-forwarded-for' => '1.1.1.1',
+        ]);
+        self::assertSame(429, $response2['status']);
+    }
+
+    public function testRateLimiterUsesForwardedForWhenProxyTrusted(): void
+    {
+        $transport = $this->createTransport([
+            'rateLimiter' => new SlidingWindowRateLimiter(maxRequests: 1, windowSeconds: 60),
+            'trustedProxies' => ['10.0.0.1'],
+        ]);
+
+        $body = json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'initialize',
+        ], JSON_THROW_ON_ERROR);
+
+        $response1 = $transport->handle($body, 'POST', [
+            'remote-addr' => '10.0.0.1',
+            'x-forwarded-for' => '1.1.1.1',
+        ]);
+        self::assertSame(200, $response1['status']);
+
+        $response2 = $transport->handle($body, 'POST', [
+            'remote-addr' => '10.0.0.1',
+            'x-forwarded-for' => '2.2.2.2',
+        ]);
+        self::assertSame(429, $response2['status']);
+    }
+
     public function testHttpReturnsCorsHeadersWhenOriginAllowed(): void
     {
         $transport = $this->createTransport(['allowedOrigins' => ['https://example.com']]);

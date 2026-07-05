@@ -13,6 +13,7 @@ final readonly class HttpTransport implements TransportInterface
 
     /**
      * @param list<string> $allowedOrigins Trusted origins for CORS. Empty = no CORS headers.
+     * @param list<string> $trustedProxies Trusted proxy IPs. Empty = ignore X-Forwarded-For.
      */
     public function __construct(
         private JsonRpcHandler $handler,
@@ -21,6 +22,7 @@ final readonly class HttpTransport implements TransportInterface
         private int $maxBodySize = self::DEFAULT_MAX_BODY_SIZE,
         private array $allowedOrigins = [],
         private bool $requireTls = false,
+        private array $trustedProxies = [],
     ) {
     }
 
@@ -152,7 +154,20 @@ final readonly class HttpTransport implements TransportInterface
      */
     private function resolveClientIp(array $headers): string
     {
-        return $headers['x-forwarded-for'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $forwardedFor = $headers['x-forwarded-for'] ?? '';
+
+        if ($forwardedFor === '' || $this->trustedProxies === []) {
+            return $remoteAddr;
+        }
+
+        if (!in_array($remoteAddr, $this->trustedProxies, true)) {
+            return $remoteAddr;
+        }
+
+        $ips = array_map('trim', explode(',', $forwardedFor));
+
+        return $ips[0] !== '' ? $ips[0] : $remoteAddr;
     }
 
     /**

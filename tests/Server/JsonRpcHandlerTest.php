@@ -77,6 +77,60 @@ final class JsonRpcHandlerTest extends TestCase
         self::assertSame(-32001, $response['error']['code']);
     }
 
+    public function testRejectsBatchExceedingMaxSize(): void
+    {
+        $handler = new JsonRpcHandler(
+            ServerFactory::createDefault(new AllowAllPermissionPolicy()),
+            maxBatchSize: 2
+        );
+
+        $batch = [];
+        for ($i = 0; $i < 3; $i++) {
+            $batch[] = [
+                'jsonrpc' => '2.0',
+                'id' => $i,
+                'method' => 'initialize',
+            ];
+        }
+
+        $response = json_decode(
+            $handler->handle(json_encode($batch, JSON_THROW_ON_ERROR)),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
+
+        self::assertSame(-32602, $response['error']['code']);
+        self::assertStringContainsString('Batch size', $response['error']['message']);
+    }
+
+    public function testAcceptsBatchWithinMaxSize(): void
+    {
+        $handler = new JsonRpcHandler(
+            ServerFactory::createDefault(new AllowAllPermissionPolicy()),
+            maxBatchSize: 3
+        );
+
+        $batch = [];
+        for ($i = 0; $i < 3; $i++) {
+            $batch[] = [
+                'jsonrpc' => '2.0',
+                'id' => $i,
+                'method' => 'initialize',
+            ];
+        }
+
+        $response = json_decode(
+            $handler->handle(json_encode($batch, JSON_THROW_ON_ERROR)),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
+
+        self::assertCount(3, $response);
+        self::assertArrayHasKey('result', $response[0]);
+    }
+
     /**
      * @param array<string, mixed> $params
      *
