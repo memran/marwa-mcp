@@ -6,7 +6,6 @@ namespace Marwa\MCP;
 
 use Marwa\MCP\PromptRegistry;
 use Marwa\MCP\ResourceRegistry;
-use Marwa\MCP\AllowAllPermissionPolicy;
 use Marwa\MCP\PermissionPolicyInterface;
 use Marwa\MCP\SchemaValidator;
 use Marwa\MCP\ToolRegistry;
