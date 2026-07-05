@@ -19,7 +19,7 @@ final class McpServer
         private readonly ToolRegistry $tools,
         private readonly ResourceRegistry $resources,
         private readonly PromptRegistry $prompts,
-        private readonly PermissionPolicyInterface $permissionPolicy = new AllowAllPermissionPolicy(),
+        private readonly PermissionPolicyInterface $permissionPolicy,
         private readonly SchemaValidator $schemaValidator = new SchemaValidator(),
         private readonly string $name = 'marwa-mcp',
         private readonly string $version = '0.1.0'

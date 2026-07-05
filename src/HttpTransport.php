@@ -9,8 +9,10 @@ use Marwa\MCP\TransportInterface;
 
 final readonly class HttpTransport implements TransportInterface
 {
-    public function __construct(private JsonRpcHandler $handler)
-    {
+    public function __construct(
+        private JsonRpcHandler $handler,
+        private ?AuthenticatorInterface $authenticator = null
+    ) {
     }
 
     /**
@@ -28,6 +30,14 @@ final readonly class HttpTransport implements TransportInterface
             ];
         }
 
+        if ($this->authenticator !== null && !$this->authenticator->authenticate($headers)) {
+            return [
+                'status' => 401,
+                'headers' => ['Content-Type' => 'application/json'],
+                'body' => '{"jsonrpc":"2.0","id":null,"error":{"code":-32001,"message":"Unauthorized."}}',
+            ];
+        }
+
         return [
             'status' => 200,
             'headers' => ['Content-Type' => 'application/json'],
@@ -37,7 +47,11 @@ final readonly class HttpTransport implements TransportInterface
 
     public function emit(): void
     {
-        $response = $this->handle((string) file_get_contents('php://input'), $_SERVER['REQUEST_METHOD'] ?? 'POST');
+        $response = $this->handle(
+            (string) file_get_contents('php://input'),
+            $_SERVER['REQUEST_METHOD'] ?? 'POST',
+            $this->extractHeaders()
+        );
         http_response_code($response['status']);
         foreach ($response['headers'] as $name => $value) {
             header($name . ': ' . $value);
@@ -49,5 +63,25 @@ final readonly class HttpTransport implements TransportInterface
     public function listen(): void
     {
         $this->emit();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function extractHeaders(): array
+    {
+        $headers = [];
+        foreach ($_SERVER as $key => $value) {
+            if (is_string($value) && str_starts_with($key, 'HTTP_')) {
+                $name = str_replace('_', '-', strtolower(substr($key, 5)));
+                $headers[$name] = $value;
+            }
+        }
+
+        if (isset($_SERVER['CONTENT_TYPE']) && is_string($_SERVER['CONTENT_TYPE'])) {
+            $headers['content-type'] = $_SERVER['CONTENT_TYPE'];
+        }
+
+        return $headers;
     }
 }

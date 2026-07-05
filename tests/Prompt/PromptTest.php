@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Marwa\MCP\Tests\Prompt;
 
+use Marwa\MCP\AllowAllPermissionPolicy;
 use Marwa\MCP\JsonRpcHandler;
 use Marwa\MCP\ServerFactory;
 use PHPUnit\Framework\TestCase;
@@ -14,7 +15,7 @@ final class PromptTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->handler = new JsonRpcHandler(ServerFactory::createDefault());
+        $this->handler = new JsonRpcHandler(ServerFactory::createDefault(new AllowAllPermissionPolicy()));
     }
 
     public function testPromptsList(): void

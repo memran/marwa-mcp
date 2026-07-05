@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Marwa\MCP\Tests\Server;
 
+use Marwa\MCP\AllowAllPermissionPolicy;
 use Marwa\MCP\PermissionPolicyInterface;
 use Marwa\MCP\JsonRpcHandler;
 use Marwa\MCP\ServerFactory;
@@ -15,7 +16,7 @@ final class JsonRpcHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->handler = new JsonRpcHandler(ServerFactory::createDefault());
+        $this->handler = new JsonRpcHandler(ServerFactory::createDefault(new AllowAllPermissionPolicy()));
     }
 
     public function testInitializeResponse(): void

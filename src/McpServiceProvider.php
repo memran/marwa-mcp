@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Marwa\MCP;
 
+use Marwa\MCP\AllowAllPermissionPolicy;
 use Marwa\MCP\JsonRpcHandler;
 use Marwa\MCP\ServerFactory;
 use Marwa\MCP\HttpTransport;
@@ -14,7 +15,7 @@ final class McpServiceProvider
 {
     public function register(object $container): void
     {
-        $server = ServerFactory::createDefault();
+        $server = ServerFactory::createDefault(new AllowAllPermissionPolicy());
         $logger = $this->resolveLogger($container);
         $handler = new JsonRpcHandler($server, $logger);
         $transport = new HttpTransport($handler);

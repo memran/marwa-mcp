@@ -10,7 +10,6 @@ use Marwa\MCP\PromptRegistry;
 use Marwa\MCP\ServerInfoResource;
 use Marwa\MCP\ToolsResource;
 use Marwa\MCP\ResourceRegistry;
-use Marwa\MCP\AllowAllPermissionPolicy;
 use Marwa\MCP\PermissionPolicyInterface;
 use Marwa\MCP\EchoTool;
 use Marwa\MCP\PingTool;
@@ -20,7 +19,7 @@ use Marwa\MCP\ToolRegistry;
 final class ServerFactory
 {
     public static function createDefault(
-        ?PermissionPolicyInterface $permissionPolicy = null,
+        PermissionPolicyInterface $permissionPolicy,
         string $name = 'marwa-mcp',
         string $version = '0.1.0'
     ): McpServer {
@@ -41,7 +40,7 @@ final class ServerFactory
             tools: $tools,
             resources: $resources,
             prompts: $prompts,
-            permissionPolicy: $permissionPolicy ?? new AllowAllPermissionPolicy(),
+            permissionPolicy: $permissionPolicy,
             name: $name,
             version: $version
         );

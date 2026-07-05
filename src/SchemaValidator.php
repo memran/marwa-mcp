@@ -92,7 +92,7 @@ final class SchemaValidator
             'array' => is_array($value) && array_is_list($value),
             'object' => is_array($value) && $this->isAssoc($value),
             'null' => is_null($value),
-            default => true,
+            default => false,
         };
     }
 

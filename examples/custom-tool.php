@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Marwa\MCP\AllowAllPermissionPolicy;
 use Marwa\MCP\JsonRpcHandler;
 use Marwa\MCP\ServerFactory;
 use Marwa\MCP\ToolInterface;
@@ -39,7 +40,7 @@ final class GreetingTool implements ToolInterface
     }
 }
 
-$server = ServerFactory::createDefault();
+$server = ServerFactory::createDefault(new AllowAllPermissionPolicy());
 $server->tools()->register(new GreetingTool());
 
 (new StdioTransport(new JsonRpcHandler($server)))->listen();

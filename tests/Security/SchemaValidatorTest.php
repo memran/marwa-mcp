@@ -62,4 +62,20 @@ final class SchemaValidatorTest extends TestCase
             'required' => ['text'],
         ], ['text' => 'hello'], 'argument');
     }
+
+    public function testRejectsUnknownType(): void
+    {
+        $validator = new SchemaValidator();
+
+        $this->expectException(McpError::class);
+        $this->expectExceptionMessage('Invalid type for argument.data.');
+
+        $validator->validateObject([
+            'type' => 'object',
+            'properties' => [
+                'data' => ['type' => 'malicious'],
+            ],
+            'required' => ['data'],
+        ], ['data' => 'anything'], 'argument');
+    }
 }
