@@ -32,7 +32,19 @@ final class PromptTest extends TestCase
             ['name' => 'marwa_debug_help', 'arguments' => ['issue' => 'route 404']]
         );
 
-        self::assertStringContainsString('route 404', $response['result']['messages'][0]['content']['text']);
+        $expected = '<user_input>route 404</user_input>';
+        self::assertStringContainsString(
+            $expected,
+            $response['result']['messages'][0]['content']['text']
+        );
+    }
+
+    public function testPromptRejectsMissingRequiredArgument(): void
+    {
+        $response = $this->request('prompts/get', ['name' => 'marwa_debug_help']);
+
+        self::assertSame(-32602, $response['error']['code']);
+        self::assertStringContainsString('Missing required argument', $response['error']['message']);
     }
 
     /**

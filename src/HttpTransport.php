@@ -79,11 +79,31 @@ final readonly class HttpTransport implements TransportInterface
             $responseHeaders['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
         }
 
+        $body = $this->handler->handle($body);
+
         return [
-            'status' => 200,
+            'status' => $this->resolveHttpStatus($body),
             'headers' => $responseHeaders,
-            'body' => $this->handler->handle($body),
+            'body' => $body,
         ];
+    }
+
+    private function resolveHttpStatus(string $jsonRpcBody): int
+    {
+        $decoded = json_decode($jsonRpcBody, true);
+        if (!is_array($decoded) || !isset($decoded['error']['code'])) {
+            return 200;
+        }
+
+        return match ($decoded['error']['code']) {
+            McpError::PARSE_ERROR => 400,
+            McpError::INVALID_REQUEST => 400,
+            McpError::METHOD_NOT_FOUND => 404,
+            McpError::INVALID_PARAMS => 400,
+            McpError::PERMISSION_DENIED => 403,
+            McpError::INTERNAL_ERROR => 500,
+            default => 200,
+        };
     }
 
     public function emit(): void

@@ -34,7 +34,7 @@ final readonly class ServerInfoTool implements ToolInterface
         return ToolResult::text(Json::encode([
             'name' => $this->serverName,
             'version' => $this->serverVersion,
-            'php' => PHP_VERSION,
+            'php' => PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION,
         ]));
     }
 }

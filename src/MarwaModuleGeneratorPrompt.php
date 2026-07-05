@@ -37,7 +37,9 @@ final class MarwaModuleGeneratorPrompt implements PromptInterface
         return PromptResult::userText(
             $this->description(),
             sprintf(
-                'Create a Marwa module named %s for %s. Include routes, services, tests, and security checks.',
+                'Create a Marwa module named <user_input>%s</user_input>'
+                    . ' for <user_input>%s</user_input>.'
+                    . ' Include routes, services, tests, and security checks.',
                 $module,
                 $purpose
             )

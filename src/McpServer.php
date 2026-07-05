@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Marwa\MCP;
 
+use Marwa\MCP\PromptInterface;
 use Marwa\MCP\PromptRegistry;
 use Marwa\MCP\ResourceRegistry;
 use Marwa\MCP\PermissionPolicyInterface;
@@ -149,6 +150,26 @@ final class McpServer
         }
 
         /** @var array<string, mixed> $arguments */
-        return $this->prompts->get($name)->get($arguments)->toArray();
+        $prompt = $this->prompts->get($name);
+        $this->validatePromptArguments($prompt, $arguments);
+
+        return $prompt->get($arguments)->toArray();
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     */
+    private function validatePromptArguments(PromptInterface $prompt, array $arguments): void
+    {
+        foreach ($prompt->arguments() as $arg) {
+            if (
+                isset($arg['name'])
+                && is_string($arg['name'])
+                && ($arg['required'] ?? false) === true
+                && !array_key_exists($arg['name'], $arguments)
+            ) {
+                throw new McpError(McpError::INVALID_PARAMS, sprintf('Missing required argument: %s.', $arg['name']));
+            }
+        }
     }
 }

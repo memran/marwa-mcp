@@ -35,7 +35,7 @@ final class MarwaDebugHelpPrompt implements PromptInterface
         return PromptResult::userText(
             $this->description(),
             'Debug this Marwa issue. Identify likely causes, safe checks, and minimal fixes: '
-                . $issue
+                . '<user_input>' . $issue . '</user_input>'
         );
     }
 }

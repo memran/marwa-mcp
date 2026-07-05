@@ -57,7 +57,7 @@ final class HttpTransportTest extends TestCase
         $response = $transport->handle('{bad-json');
         $body = json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
 
-        self::assertSame(200, $response['status']);
+        self::assertSame(400, $response['status']);
         self::assertSame(-32700, $body['error']['code']);
     }
 
@@ -216,5 +216,50 @@ final class HttpTransportTest extends TestCase
 
         self::assertSame(403, $response['status']);
         self::assertStringContainsString('TLS required', $response['body']);
+    }
+
+    public function testHttpReturns400OnParseError(): void
+    {
+        $transport = $this->createTransport();
+        $response = $transport->handle('{bad-json');
+
+        self::assertSame(400, $response['status']);
+    }
+
+    public function testHttpReturns404OnMethodNotFound(): void
+    {
+        $transport = $this->createTransport();
+        $response = $transport->handle(json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'missing/method',
+        ], JSON_THROW_ON_ERROR));
+
+        self::assertSame(404, $response['status']);
+    }
+
+    public function testHttpReturns400OnInvalidParams(): void
+    {
+        $transport = $this->createTransport();
+        $response = $transport->handle(json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tools/call',
+            'params' => ['name' => 'echo', 'arguments' => ['text' => 123]],
+        ], JSON_THROW_ON_ERROR));
+
+        self::assertSame(400, $response['status']);
+    }
+
+    public function testHttpReturns200OnSuccess(): void
+    {
+        $transport = $this->createTransport();
+        $response = $transport->handle(json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'initialize',
+        ], JSON_THROW_ON_ERROR));
+
+        self::assertSame(200, $response['status']);
     }
 }
