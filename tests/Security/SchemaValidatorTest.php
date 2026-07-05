@@ -78,4 +78,50 @@ final class SchemaValidatorTest extends TestCase
             'required' => ['data'],
         ], ['data' => 'anything'], 'argument');
     }
+
+    public function testRejectsExcessiveNesting(): void
+    {
+        $validator = new SchemaValidator(maxDepth: 2);
+
+        $this->expectException(McpError::class);
+        $this->expectExceptionMessage('Maximum nesting depth exceeded');
+
+        $validator->validateObject([
+            'type' => 'object',
+            'properties' => [
+                'level1' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'level2' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'level3' => ['type' => 'string'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'required' => ['level1'],
+        ], ['level1' => ['level2' => ['level3' => 'deep']]], 'argument');
+    }
+
+    public function testAllowsNestingWithinLimit(): void
+    {
+        $validator = new SchemaValidator(maxDepth: 3);
+
+        $validator->validateObject([
+            'type' => 'object',
+            'properties' => [
+                'level1' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'level2' => ['type' => 'string'],
+                    ],
+                ],
+            ],
+            'required' => ['level1'],
+        ], ['level1' => ['level2' => 'ok']], 'argument');
+
+        self::assertTrue(true);
+    }
 }

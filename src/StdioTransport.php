@@ -12,6 +12,8 @@ use Throwable;
 
 final class StdioTransport implements TransportInterface
 {
+    private const DEFAULT_MAX_LINE_LENGTH = 65_536;
+
     private mixed $input;
 
     private mixed $output;
@@ -23,7 +25,8 @@ final class StdioTransport implements TransportInterface
         mixed $input = null,
         mixed $output = null,
         mixed $errorOutput = null,
-        private readonly LoggerInterface $logger = new NullLogger()
+        private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly int $maxLineLength = self::DEFAULT_MAX_LINE_LENGTH,
     ) {
         $this->input = $input ?? STDIN;
         $this->output = $output ?? STDOUT;
@@ -32,7 +35,7 @@ final class StdioTransport implements TransportInterface
 
     public function listen(): void
     {
-        while (($line = fgets($this->input)) !== false) {
+        while (($line = fgets($this->input, $this->maxLineLength + 1)) !== false) {
             $line = trim($line);
             if ($line === '') {
                 continue;

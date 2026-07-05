@@ -9,14 +9,23 @@ use Marwa\MCP\ApiKeyAuthenticator;
 use Marwa\MCP\JsonRpcHandler;
 use Marwa\MCP\ServerFactory;
 use Marwa\MCP\HttpTransport;
+use Marwa\MCP\SlidingWindowRateLimiter;
 use PHPUnit\Framework\TestCase;
 
 final class HttpTransportTest extends TestCase
 {
-    private function createTransport(): HttpTransport
+    /**
+     * @param array<string, mixed> $options
+     */
+    private function createTransport(array $options = []): HttpTransport
     {
         return new HttpTransport(
-            new JsonRpcHandler(ServerFactory::createDefault(new AllowAllPermissionPolicy()))
+            handler: new JsonRpcHandler(ServerFactory::createDefault(new AllowAllPermissionPolicy())),
+            authenticator: $options['authenticator'] ?? null,
+            rateLimiter: $options['rateLimiter'] ?? null,
+            maxBodySize: $options['maxBodySize'] ?? 1_048_576,
+            allowedOrigins: $options['allowedOrigins'] ?? [],
+            requireTls: $options['requireTls'] ?? false,
         );
     }
 
@@ -54,10 +63,9 @@ final class HttpTransportTest extends TestCase
 
     public function testHttpRejectsRequestWithoutAuth(): void
     {
-        $transport = new HttpTransport(
-            new JsonRpcHandler(ServerFactory::createDefault(new AllowAllPermissionPolicy())),
-            new ApiKeyAuthenticator('test-secret')
-        );
+        $transport = $this->createTransport([
+            'authenticator' => new ApiKeyAuthenticator('test-secret'),
+        ]);
         $response = $transport->handle(json_encode([
             'jsonrpc' => '2.0',
             'id' => 1,
@@ -70,10 +78,9 @@ final class HttpTransportTest extends TestCase
 
     public function testHttpAcceptsRequestWithValidAuth(): void
     {
-        $transport = new HttpTransport(
-            new JsonRpcHandler(ServerFactory::createDefault(new AllowAllPermissionPolicy())),
-            new ApiKeyAuthenticator('test-secret')
-        );
+        $transport = $this->createTransport([
+            'authenticator' => new ApiKeyAuthenticator('test-secret'),
+        ]);
         $response = $transport->handle(
             json_encode([
                 'jsonrpc' => '2.0',
@@ -90,10 +97,9 @@ final class HttpTransportTest extends TestCase
 
     public function testHttpRejectsRequestWithInvalidAuth(): void
     {
-        $transport = new HttpTransport(
-            new JsonRpcHandler(ServerFactory::createDefault(new AllowAllPermissionPolicy())),
-            new ApiKeyAuthenticator('test-secret')
-        );
+        $transport = $this->createTransport([
+            'authenticator' => new ApiKeyAuthenticator('test-secret'),
+        ]);
         $response = $transport->handle(
             json_encode([
                 'jsonrpc' => '2.0',
@@ -105,5 +111,110 @@ final class HttpTransportTest extends TestCase
         );
 
         self::assertSame(401, $response['status']);
+    }
+
+    public function testHttpRejectsOversizedBody(): void
+    {
+        $transport = $this->createTransport(['maxBodySize' => 10]);
+        $response = $transport->handle(str_repeat('x', 11));
+
+        self::assertSame(413, $response['status']);
+        self::assertStringContainsString('too large', $response['body']);
+    }
+
+    public function testHttpAcceptsBodyWithinSizeLimit(): void
+    {
+        $transport = $this->createTransport(['maxBodySize' => 1024]);
+        $response = $transport->handle(json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'initialize',
+        ], JSON_THROW_ON_ERROR));
+
+        self::assertSame(200, $response['status']);
+    }
+
+    public function testHttpRejectsWhenRateLimited(): void
+    {
+        $transport = $this->createTransport([
+            'rateLimiter' => new SlidingWindowRateLimiter(maxRequests: 1, windowSeconds: 60),
+        ]);
+
+        $body = json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'initialize',
+        ], JSON_THROW_ON_ERROR);
+
+        $response1 = $transport->handle($body, 'POST', ['remote-addr' => '127.0.0.1']);
+        self::assertSame(200, $response1['status']);
+
+        $response2 = $transport->handle($body, 'POST', ['remote-addr' => '127.0.0.1']);
+        self::assertSame(429, $response2['status']);
+    }
+
+    public function testHttpReturnsCorsHeadersWhenOriginAllowed(): void
+    {
+        $transport = $this->createTransport(['allowedOrigins' => ['https://example.com']]);
+        $response = $transport->handle(
+            json_encode([
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'initialize',
+            ], JSON_THROW_ON_ERROR),
+            'POST',
+            ['origin' => 'https://example.com']
+        );
+
+        self::assertSame(200, $response['status']);
+        self::assertSame('https://example.com', $response['headers']['Access-Control-Allow-Origin']);
+        self::assertArrayHasKey('Access-Control-Allow-Methods', $response['headers']);
+    }
+
+    public function testHttpOmitsCorsHeadersWhenOriginNotAllowed(): void
+    {
+        $transport = $this->createTransport(['allowedOrigins' => ['https://trusted.com']]);
+        $response = $transport->handle(
+            json_encode([
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'initialize',
+            ], JSON_THROW_ON_ERROR),
+            'POST',
+            ['origin' => 'https://evil.com']
+        );
+
+        self::assertSame(200, $response['status']);
+        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $response['headers']);
+    }
+
+    public function testHttpOmitsCorsHeadersWhenNoOriginsConfigured(): void
+    {
+        $transport = $this->createTransport();
+        $response = $transport->handle(
+            json_encode([
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'initialize',
+            ], JSON_THROW_ON_ERROR),
+            'POST',
+            ['origin' => 'https://example.com']
+        );
+
+        self::assertSame(200, $response['status']);
+        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $response['headers']);
+    }
+
+    public function testHttpRejectsWhenTlsRequiredButNotSecure(): void
+    {
+        $transport = $this->createTransport(['requireTls' => true]);
+        $response = $transport->handle(json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'initialize',
+        ], JSON_THROW_ON_ERROR));
+
+        self::assertSame(403, $response['status']);
+        self::assertStringContainsString('TLS required', $response['body']);
     }
 }

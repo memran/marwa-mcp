@@ -8,12 +8,32 @@ use Marwa\MCP\McpError;
 
 final class SchemaValidator
 {
+    private const DEFAULT_MAX_DEPTH = 32;
+
+    public function __construct(
+        private readonly int $maxDepth = self::DEFAULT_MAX_DEPTH,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $schema
      * @param array<string, mixed> $value
      */
     public function validateObject(array $schema, array $value, string $label = 'value'): void
     {
+        $this->doValidateObject($schema, $value, $label, 0);
+    }
+
+    /**
+     * @param array<string, mixed> $schema
+     * @param array<string, mixed> $value
+     */
+    private function doValidateObject(array $schema, array $value, string $label, int $depth): void
+    {
+        if ($depth >= $this->maxDepth) {
+            throw new McpError(McpError::INVALID_PARAMS, sprintf('Maximum nesting depth exceeded for %s.', $label));
+        }
+
         $type = $schema['type'] ?? 'object';
         if ($type !== 'object') {
             throw new McpError(McpError::INVALID_PARAMS, sprintf('Invalid %s schema.', $label));
@@ -38,14 +58,14 @@ final class SchemaValidator
                 throw new McpError(McpError::INVALID_PARAMS, sprintf('Unexpected %s: %s.', $label, $name));
             }
 
-            $this->validateValue($definition, $fieldValue, sprintf('%s.%s', $label, $name));
+            $this->validateValue($definition, $fieldValue, sprintf('%s.%s', $label, $name), $depth);
         }
     }
 
     /**
      * @param array<string, mixed> $schema
      */
-    private function validateValue(array $schema, mixed $value, string $path): void
+    private function validateValue(array $schema, mixed $value, string $path, int $depth): void
     {
         $type = $schema['type'] ?? null;
         if (is_string($type) && !$this->matchesType($value, $type)) {
@@ -62,7 +82,7 @@ final class SchemaValidator
 
         if (is_array($value) && ($type === 'object' || $this->isAssoc($value))) {
             /** @var array<string, mixed> $value */
-            $this->validateObject($schema, $value, $path);
+            $this->doValidateObject($schema, $value, $path, $depth + 1);
         }
     }
 
